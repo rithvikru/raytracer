@@ -2,3 +2,7 @@
 name = "raytracer"
 version = "0.1.0"
 edition = "2024"
+
+[dependencies]
+indicatif = "0.17.12"
+num-traits = "0.2.19"
