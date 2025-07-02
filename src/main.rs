@@ -4,20 +4,17 @@ fn main() {
 
     println!("P3\n{} {}\n255\n", image_width, image_height);
 
-    for r in 0..image_height {
-        for c in 0..image_width {
-            let red = c as f32 / (image_width - 1) as f32;
-            let green = r as f32 / (image_height - 1) as f32;
-            let blue = 0.0;
+    for j in 0..image_height {
+        for i in 0..image_width {
+            let r = i as f32 / (image_width - 1) as f32;
+            let g = j as f32 / (image_height - 1) as f32;
+            let b = 0.0;
 
-            let i_red = (255.999 * red) as u8;
-            let i_green = (255.999 * green) as u8;
-            let i_blue = (255.999 * blue) as u8;
+            let ir = (255.999 * r) as u8;
+            let ig = (255.999 * g) as u8;
+            let ib = (255.999 * b) as u8;
 
-            println!(
-                "{} {} {}",
-                i_red, i_green, i_blue
-            );
+            println!("{ir} {ig} {ib}");
         }
     }
 }
