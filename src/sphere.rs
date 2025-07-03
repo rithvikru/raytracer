@@ -1,6 +1,6 @@
 use crate::{
     hit::{HitRecord, Hittable},
-    vec3::{Point3, Vec3},
+    vec3::{Point3, Vec3, dot},
     ray::Ray,
 };
 
@@ -11,37 +11,42 @@ pub struct Sphere {
 
 impl Sphere {
     pub fn new(center: Point3, radius: f64) -> Self {
-        Sphere { center, fmax(0.0, radius) }
+        Sphere { center, radius: radius.max(0.0) }
     }
 }
 
 impl Hittable for Sphere {
-    fn hit(&self, r: &Ray, ray_tmin: f64, ray_tmax: f64, rec: &HitRecord) -> bool {
-        let oc = center - r.origin();
+    fn hit(&self, r: &Ray, ray_tmin: f64, ray_tmax: f64) -> Option<HitRecord> {
+        let oc = self.center - r.origin();
 
         let a = r.direction().length_squared();
         let h = dot(&r.direction(), &oc);
-        let c = oc.length_squared() - radius * radius;
+        let c = oc.length_squared() - self.radius * self.radius;
 
         let discriminant = (h * h) - (a * c);
         if discriminant < 0.0 {
-            return false;
+            return None;
         } 
         let sqrtd = discriminant.sqrt();
 
-        let root = (h - sqrtd) / a;
-        if root <= ray_tmin or ray_tmax <= root {
+        let mut root = (h - sqrtd) / a;
+        if root <= ray_tmin || ray_tmax <= root {
             root = (h + sqrtd) / a;
-            if root <= ray_tmin or ray_tmax <= root {
-                return false;
+            if root <= ray_tmin || ray_tmax <= root {
+                return None;
             }
         }
 
-        rec.t = root;
-        rec.p = r.at(rec.t);
+        let mut rec = HitRecord {
+            t: root,
+            p: r.at(root),
+            normal: Vec3::new(0.0, 0.0, 0.0),
+            front_face: false,
+        };
+        
         let outward_normal = (rec.p - self.center) / self.radius;
         rec.set_face_normal(r, outward_normal);
 
-        true
+        Some(rec)
     }
 }

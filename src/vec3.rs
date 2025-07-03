@@ -1,4 +1,4 @@
-use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, MulAssign, Div, DivAssign};
+use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, MulAssign, Div, DivAssign, Neg};
 use num_traits::Float;
 
 #[derive(Debug, Clone, Copy)]
@@ -160,6 +160,25 @@ where
     }
 }
 
+impl<T> Neg for Vec3<T>
+where
+    T: Neg<Output = T> + Copy
+{
+    type Output = Vec3<T>;
+
+    fn neg(self) -> Self::Output {
+        Vec3::new(-self.e[0], -self.e[1], -self.e[2])
+    }
+}
+
+impl Mul<Vec3<f64>> for f64 {
+    type Output = Vec3<f64>;
+
+    fn mul(self, v: Vec3<f64>) -> Self::Output {
+        v * self
+    }
+}
+
 pub fn dot<T>(u: &Vec3<T>, v: &Vec3<T>) -> T
 where
     T: Mul<Output = T> + Add<Output = T> + Copy
@@ -184,5 +203,4 @@ where
 {
     v / v.length()
 }
-
 pub type Point3 = Vec3<f64>;

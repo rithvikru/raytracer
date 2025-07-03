@@ -1,33 +1,23 @@
 mod color;
 mod vec3;
 mod ray;
+mod hit;
+mod sphere;
+mod util;
 
 use crate::{
     color::Color, color::write_color,
+    hit::{Hittable, HittableList},
     ray::Ray,
-    vec3::{Vec3, Point3, unit_vector, dot},
+    vec3::{Vec3, Point3, unit_vector},
+    sphere::Sphere,
+    util::{Rc, INFINITY},
 };
 use indicatif::{ProgressBar, ProgressStyle};
 
-pub fn hit_sphere(center: Point3, radius: f64, r: &Ray) -> f64 {
-    let oc = center - r.origin();
-
-    let a = r.direction().length_squared();
-    let h = dot(&r.direction(), &oc);
-    let c = oc.length_squared() - radius * radius;
-
-    let discriminant = (h * h) - (a * c);
-    if discriminant < 0.0 {
-        return -1.0;
-    } 
-    (h - discriminant.sqrt()) / a
-}
-
-pub fn ray_color(r: &Ray) -> Color {
-    let t = hit_sphere(Point3::new(0.0, 0.0, -1.0), 0.5, r);
-    if t > 0.0 {
-        let N = unit_vector(r.at(t) - Vec3::new(0.0, 0.0, -1.0));
-        return Color::new(N.x() + 1.0, N.y() + 1.0, N.z() + 1.0) * 0.5;
+pub fn ray_color(r: &Ray, world: &dyn Hittable) -> Color {
+    if let Some(rec) = world.hit(r, 0.0, INFINITY) {
+        return 0.5 * (rec.normal + Color::new(1.0, 1.0, 1.0));
     }
 
     let unit_direction = unit_vector(r.direction());
@@ -41,6 +31,10 @@ fn main() {
     let image_width = 400;
     let mut image_height = (image_width as f64 / aspect_ratio) as u64;
     image_height = if image_height < 1 { 1 } else { image_height };
+
+    let mut world = HittableList::new();
+    world.add(Rc::new(Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5)));
+    world.add(Rc::new(Sphere::new(Point3::new(0.0, -100.5, -1.0), 100.0)));
 
     let focal_length = 1.0;
     let viewport_height = 2.0;
@@ -72,7 +66,7 @@ fn main() {
             let ray_direction = pixel_center - camera_center;
             let r = Ray::new(camera_center, ray_direction);
 
-            let pixel_color = ray_color(&r);
+            let pixel_color = ray_color(&r, &world);
             write_color(&pixel_color);
         }
         
