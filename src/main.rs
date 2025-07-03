@@ -3,6 +3,7 @@ mod vec3;
 mod ray;
 mod hit;
 mod sphere;
+mod interval;
 mod util;
 
 use crate::{
@@ -11,17 +12,18 @@ use crate::{
     ray::Ray,
     vec3::{Vec3, Point3, unit_vector},
     sphere::Sphere,
-    util::{Rc, INFINITY},
+    interval::Interval,
+    util::Rc,
 };
 use indicatif::{ProgressBar, ProgressStyle};
 
 pub fn ray_color(r: &Ray, world: &dyn Hittable) -> Color {
-    if let Some(rec) = world.hit(r, 0.0, INFINITY) {
-        return 0.5 * (rec.normal + Color::new(1.0, 1.0, 1.0));
+    if let Some(rec) = world.hit(r, Interval::new(0.0, f64::INFINITY)) {
+        return (rec.normal + Color::new(1.0, 1.0, 1.0)) * 0.5;
     }
 
     let unit_direction = unit_vector(r.direction());
-    let a = 0.5 * (unit_direction.y() + 1.0);
+    let a = (unit_direction.y() + 1.0) * 0.5;
     Color::new(1.0, 1.0, 1.0) * (1.0 - a) + Color::new(0.5, 0.7, 1.0) * a
 }
 
