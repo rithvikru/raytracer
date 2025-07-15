@@ -1,6 +1,6 @@
 use crate::vec3::Vec3;
 
-pub type Color = Vec3<f64>;
+pub type Color = Vec3;
 
 pub fn write_color(pixel_color: &Color) {
     let r = pixel_color.x();

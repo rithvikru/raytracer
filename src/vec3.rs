@@ -1,52 +1,39 @@
-use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, MulAssign, Div, DivAssign, Neg};
-use num_traits::Float;
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
-#[derive(Debug, Clone, Copy)]
-pub struct Vec3<T> {
-    pub e: [T; 3],
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Vec3 {
+    e: [f64; 3],
 }
 
-impl<T> Vec3<T> 
-where 
-    T: Copy
-{
-    pub fn new(e0: T, e1: T, e2: T) -> Self {
+impl Vec3 {
+    pub const fn new(e0: f64, e1: f64, e2: f64) -> Self {
         Vec3 { e: [e0, e1, e2] }
     }
 
-    pub fn x(&self) -> T {
+    pub const fn x(&self) -> f64 {
         self.e[0]
     }
-    pub fn y(&self) -> T {
+
+    pub const fn y(&self) -> f64 {
         self.e[1]
     }
-    pub fn z(&self) -> T {
+
+    pub const fn z(&self) -> f64 {
         self.e[2]
     }
 }
 
-impl<T> Vec3<T>
-where
-    T: Copy + Add<Output = T> + Mul<Output = T>
-{
-    pub fn length_squared(&self) -> T {
+impl Vec3 {
+    pub fn length_squared(&self) -> f64 {
         self.e[0] * self.e[0] + self.e[1] * self.e[1] + self.e[2] * self.e[2]
     }
-}
 
-impl<T> Vec3<T>
-where
-    T: Float
-{
-    pub fn length(&self) -> T {
+    pub fn length(&self) -> f64 {
         self.length_squared().sqrt()
     }
 }
 
-impl<T> Add for Vec3<T>
-where
-    T: Add<Output = T> + Copy
-{
+impl Add for Vec3 {
     type Output = Self;
 
     fn add(self, other: Self) -> Self::Output {
@@ -58,10 +45,7 @@ where
     }
 }
 
-impl<T> AddAssign for Vec3<T>
-where
-    T: AddAssign + Copy
-{
+impl AddAssign for Vec3 {
     fn add_assign(&mut self, other: Self) {
         self.e[0] += other.e[0];
         self.e[1] += other.e[1];
@@ -69,10 +53,7 @@ where
     }
 }
 
-impl<T> Sub for Vec3<T>
-where
-    T: Sub<Output = T> + Copy
-{
+impl Sub for Vec3 {
     type Output = Self;
 
     fn sub(self, other: Self) -> Self::Output {
@@ -84,10 +65,7 @@ where
     }
 }
 
-impl<T> SubAssign for Vec3<T>
-where
-    T: SubAssign + Copy
-{
+impl SubAssign for Vec3 {
     fn sub_assign(&mut self, other: Self) {
         self.e[0] -= other.e[0];
         self.e[1] -= other.e[1];
@@ -95,10 +73,7 @@ where
     }
 }
 
-impl<T> Mul for Vec3<T>
-where
-    T: Mul<Output = T> + Copy
-{
+impl Mul for Vec3 {
     type Output = Self;
 
     fn mul(self, other: Self) -> Self::Output {
@@ -110,86 +85,57 @@ where
     }
 }
 
-impl<T> Mul<T> for Vec3<T>
-where
-    T: Mul<Output = T> + Copy
-{
+impl Mul<f64> for Vec3 {
     type Output = Self;
 
-    fn mul(self, t: T) -> Self::Output {
-        Vec3::new(
-            self.e[0] * t,
-            self.e[1] * t,
-            self.e[2] * t,
-        )
+    fn mul(self, t: f64) -> Self::Output {
+        Vec3::new(self.e[0] * t, self.e[1] * t, self.e[2] * t)
     }
 }
 
-impl<T> MulAssign<T> for Vec3<T>
-where
-    T: MulAssign + Copy
-{
-    fn mul_assign(&mut self, t: T) {
+impl MulAssign<f64> for Vec3 {
+    fn mul_assign(&mut self, t: f64) {
         self.e[0] *= t;
         self.e[1] *= t;
         self.e[2] *= t;
     }
 }
 
-impl<T> Div<T> for Vec3<T>
-where
-    T: Div<Output = T> + Copy
-{
+impl Div<f64> for Vec3 {
     type Output = Self;
 
-    fn div(self, t: T) -> Self::Output {
-        Vec3::new(
-            self.e[0] / t,
-            self.e[1] / t,
-            self.e[2] / t,
-        )
+    fn div(self, t: f64) -> Self::Output {
+        Vec3::new(self.e[0] / t, self.e[1] / t, self.e[2] / t)
     }
 }
 
-impl<T> DivAssign<T> for Vec3<T>
-where
-    T: Float + MulAssign
-{
-    fn div_assign(&mut self, t: T) {
-        self.mul_assign(T::one() / t);
+impl DivAssign<f64> for Vec3 {
+    fn div_assign(&mut self, t: f64) {
+        self.mul_assign(1.0 / t);
     }
 }
 
-impl<T> Neg for Vec3<T>
-where
-    T: Neg<Output = T> + Copy
-{
-    type Output = Vec3<T>;
+impl Neg for Vec3 {
+    type Output = Vec3;
 
     fn neg(self) -> Self::Output {
         Vec3::new(-self.e[0], -self.e[1], -self.e[2])
     }
 }
 
-impl Mul<Vec3<f64>> for f64 {
-    type Output = Vec3<f64>;
+impl Mul<Vec3> for f64 {
+    type Output = Vec3;
 
-    fn mul(self, v: Vec3<f64>) -> Self::Output {
+    fn mul(self, v: Vec3) -> Self::Output {
         v * self
     }
 }
 
-pub fn dot<T>(u: &Vec3<T>, v: &Vec3<T>) -> T
-where
-    T: Mul<Output = T> + Add<Output = T> + Copy
-{
+pub fn dot(u: &Vec3, v: &Vec3) -> f64 {
     u.e[0] * v.e[0] + u.e[1] * v.e[1] + u.e[2] * v.e[2]
 }
 
-pub fn cross<T>(u: &Vec3<T>, v: &Vec3<T>) -> Vec3<T>
-where
-    T: Mul<Output = T> + Sub<Output = T> + Copy
-{
+pub fn cross(u: &Vec3, v: &Vec3) -> Vec3 {
     Vec3::new(
         u.e[1] * v.e[2] - u.e[2] * v.e[1],
         u.e[2] * v.e[0] - u.e[0] * v.e[2],
@@ -197,10 +143,7 @@ where
     )
 }
 
-pub fn unit_vector<T>(v: Vec3<T>) -> Vec3<T>
-where
-    T: Float
-{
+pub fn unit_vector(v: Vec3) -> Vec3 {
     v / v.length()
 }
-pub type Point3 = Vec3<f64>;
+pub type Point3 = Vec3;

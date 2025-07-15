@@ -1,21 +1,19 @@
 mod color;
-mod vec3;
-mod ray;
 mod hit;
-mod sphere;
 mod interval;
-mod util;
-
+mod ray;
+mod sphere;
+mod vec3;
 use crate::{
-    color::Color, color::write_color,
+    color::{write_color, Color},
     hit::{Hittable, HittableList},
-    ray::Ray,
-    vec3::{Vec3, Point3, unit_vector},
-    sphere::Sphere,
     interval::Interval,
-    util::Rc,
+    ray::Ray,
+    sphere::Sphere,
+    vec3::{unit_vector, Point3, Vec3},
 };
 use indicatif::{ProgressBar, ProgressStyle};
+use std::rc::Rc;
 
 pub fn ray_color(r: &Ray, world: &dyn Hittable) -> Color {
     if let Some(rec) = world.hit(r, Interval::new(0.0, f64::INFINITY)) {
@@ -49,29 +47,32 @@ fn main() {
     let pixel_delta_u = viewport_u / (image_width as f64);
     let pixel_delta_v = viewport_v / (image_height as f64);
 
-    let viewport_origin = camera_center
-                        - Vec3::new(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
+    let viewport_origin =
+        camera_center - Vec3::new(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
     let pixel_00loc = viewport_origin + (pixel_delta_u + pixel_delta_v) * 0.5;
-                    
+
     let progress = ProgressBar::new(image_height);
     progress.set_style(
-        ProgressStyle::with_template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len}")
-            .unwrap()
-            .progress_chars("#>-")
+        ProgressStyle::with_template(
+            "{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len}",
+        )
+        .unwrap()
+        .progress_chars("#>-"),
     );
 
     println!("P3\n{} {}\n255\n", image_width, image_height);
 
     for j in 0..image_height {
         for i in 0..image_width {
-            let pixel_center = pixel_00loc + (pixel_delta_u * (i as f64)) + (pixel_delta_v * (j as f64));
+            let pixel_center =
+                pixel_00loc + (pixel_delta_u * (i as f64)) + (pixel_delta_v * (j as f64));
             let ray_direction = pixel_center - camera_center;
             let r = Ray::new(camera_center, ray_direction);
 
             let pixel_color = ray_color(&r, &world);
             write_color(&pixel_color);
         }
-        
+
         progress.inc(1);
     }
 

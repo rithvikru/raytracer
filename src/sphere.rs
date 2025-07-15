@@ -1,10 +1,11 @@
 use crate::{
     hit::{HitRecord, Hittable},
-    vec3::{Point3, Vec3, dot},
     interval::Interval,
     ray::Ray,
+    vec3::{dot, Point3, Vec3},
 };
 
+#[derive(Debug, Clone, Copy)]
 pub struct Sphere {
     center: Point3,
     radius: f64,
@@ -12,7 +13,10 @@ pub struct Sphere {
 
 impl Sphere {
     pub fn new(center: Point3, radius: f64) -> Self {
-        Sphere { center, radius: radius.max(0.0) }
+        Sphere {
+            center,
+            radius: radius.max(0.0),
+        }
     }
 }
 
@@ -27,7 +31,7 @@ impl Hittable for Sphere {
         let discriminant = (h * h) - (a * c);
         if discriminant < 0.0 {
             return None;
-        } 
+        }
         let sqrtd = discriminant.sqrt();
 
         let mut root = (h - sqrtd) / a;
@@ -44,7 +48,7 @@ impl Hittable for Sphere {
             normal: Vec3::new(0.0, 0.0, 0.0),
             front_face: false,
         };
-        
+
         let outward_normal = (rec.p - self.center) / self.radius;
         rec.set_face_normal(r, outward_normal);
 
