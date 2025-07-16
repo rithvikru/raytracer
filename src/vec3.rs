@@ -1,3 +1,4 @@
+use rand::Rng;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -30,6 +31,24 @@ impl Vec3 {
 
     pub fn length(&self) -> f64 {
         self.length_squared().sqrt()
+    }
+
+    pub fn random(&self) -> Vec3 {
+        let mut rng = rand::rng();
+        Vec3::new(
+            rng.random_range(0.0..1.0),
+            rng.random_range(0.0..1.0),
+            rng.random_range(0.0..1.0),
+        )
+    }
+
+    pub fn random_from_range(min: f64, max: f64) -> Vec3 {
+        let mut rng = rand::rng();
+        Vec3::new(
+            rng.random_range(min..max),
+            rng.random_range(min..max),
+            rng.random_range(min..max),
+        )
     }
 }
 
@@ -146,4 +165,23 @@ pub fn cross(u: &Vec3, v: &Vec3) -> Vec3 {
 pub fn unit_vector(v: Vec3) -> Vec3 {
     v / v.length()
 }
+
+pub fn random_unit_vector() -> Vec3 {
+    loop {
+        let p = Vec3::random_from_range(-1.0, 1.0);
+        let lensq = p.length_squared();
+        if 1e-160 < lensq && lensq <= 1.0 {
+            return p / lensq.sqrt();
+        }
+    }
+}
+
+pub fn random_on_hemisphere(normal: &Vec3) -> Vec3 {
+    let mut on_unit_sphere = random_unit_vector();
+    if dot(normal, &on_unit_sphere) < 0.0 {
+        on_unit_sphere = -on_unit_sphere;
+    }
+    on_unit_sphere
+}
+
 pub type Point3 = Vec3;

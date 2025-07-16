@@ -2,6 +2,7 @@ use crate::color::{write_color, Color};
 use crate::hit::Hittable;
 use crate::interval::Interval;
 use crate::ray::Ray;
+use crate::vec3::random_on_hemisphere;
 use crate::vec3::{unit_vector, Point3, Vec3};
 use indicatif::{ProgressBar, ProgressStyle};
 use rand::Rng;
@@ -16,6 +17,7 @@ pub struct Camera {
     pixel_delta_v: Vec3,
     samples_per_pixel: u64,
     pixel_samples_scale: f64,
+    max_depth: u64,
     progress: ProgressBar,
 }
 
@@ -24,13 +26,26 @@ impl Default for Camera {
         let aspect_ratio = 16.0 / 9.0;
         let image_width = 1200;
         let samples_per_pixel = 10;
+        let max_depth = 50;
         let center = Point3::new(0.0, 0.0, 0.0);
-        Self::new(aspect_ratio, image_width, center, samples_per_pixel)
+        Self::new(
+            aspect_ratio,
+            image_width,
+            center,
+            samples_per_pixel,
+            max_depth,
+        )
     }
 }
 
 impl Camera {
-    fn new(aspect_ratio: f64, image_width: u64, center: Point3, samples_per_pixel: u64) -> Self {
+    fn new(
+        aspect_ratio: f64,
+        image_width: u64,
+        center: Point3,
+        samples_per_pixel: u64,
+        max_depth: u64,
+    ) -> Self {
         let mut image_height = (image_width as f64 / aspect_ratio) as u64;
         if image_height < 1 {
             image_height = 1;
@@ -71,6 +86,7 @@ impl Camera {
             pixel_delta_v,
             samples_per_pixel,
             pixel_samples_scale,
+            max_depth,
             progress,
         }
     }
@@ -84,7 +100,7 @@ impl Camera {
                 let mut pixel_color = Color::new(0.0, 0.0, 0.0);
                 for _sample in 0..self.samples_per_pixel {
                     let r = self.get_ray(i, j);
-                    pixel_color += self.ray_color(&r, world);
+                    pixel_color += self.ray_color(&r, self.max_depth, world);
                 }
                 write_color(&(pixel_color * self.pixel_samples_scale));
             }
@@ -114,9 +130,14 @@ impl Camera {
         )
     }
 
-    fn ray_color(&self, r: &Ray, world: &dyn Hittable) -> Color {
-        if let Some(rec) = world.hit(r, Interval::new(0.0, f64::INFINITY)) {
-            return (rec.normal + Color::new(1.0, 1.0, 1.0)) * 0.5;
+    fn ray_color(&self, r: &Ray, depth: u64, world: &dyn Hittable) -> Color {
+        if depth <= 0 {
+            return Color::new(0.0, 0.0, 0.0);
+        }
+
+        if let Some(rec) = world.hit(r, Interval::new(0.001, f64::INFINITY)) {
+            let direction = random_on_hemisphere(&rec.normal);
+            return self.ray_color(&Ray::new(rec.p, direction), depth - 1, world) * 0.5;
         }
 
         let unit_direction = unit_vector(r.direction());
