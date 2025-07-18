@@ -1,21 +1,25 @@
 use crate::{
     hit::{HitRecord, Hittable},
     interval::Interval,
+    material::Material,
     ray::Ray,
     vec3::{Point3, Vec3, dot},
 };
+use std::rc::Rc;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone)]
 pub struct Sphere {
     center: Point3,
     radius: f64,
+    mat: Rc<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(center: Point3, radius: f64) -> Self {
+    pub fn new(center: Point3, radius: f64, mat: Rc<dyn Material>) -> Self {
         Sphere {
             center,
             radius: radius.max(0.0),
+            mat,
         }
     }
 }
@@ -47,6 +51,7 @@ impl Hittable for Sphere {
             p: r.at(root),
             normal: Vec3::new(0.0, 0.0, 0.0),
             front_face: false,
+            mat: self.mat.clone(),
         };
 
         let outward_normal = (rec.p - self.center) / self.radius;

@@ -2,7 +2,6 @@ use crate::color::{write_color, Color};
 use crate::hit::Hittable;
 use crate::interval::Interval;
 use crate::ray::Ray;
-use crate::vec3::random_unit_vector;
 use crate::vec3::{unit_vector, Point3, Vec3};
 use indicatif::{ProgressBar, ProgressStyle};
 use rand::Rng;
@@ -25,7 +24,7 @@ impl Default for Camera {
     fn default() -> Self {
         let aspect_ratio = 16.0 / 9.0;
         let image_width = 1200;
-        let samples_per_pixel = 10;
+        let samples_per_pixel = 100;
         let max_depth = 50;
         let center = Point3::new(0.0, 0.0, 0.0);
         Self::new(
@@ -136,8 +135,11 @@ impl Camera {
         }
 
         if let Some(rec) = world.hit(r, Interval::new(0.001, f64::INFINITY)) {
-            let direction = rec.normal + random_unit_vector();
-            return self.ray_color(&Ray::new(rec.p, direction), depth - 1, world) * 0.5;
+            if let Some(scatter_result) = rec.mat.scatter(r, &rec) {
+                return scatter_result.attenuation
+                    * self.ray_color(&scatter_result.scattered, depth - 1, world);
+            }
+            return Color::new(0.0, 0.0, 0.0);
         }
 
         let unit_direction = unit_vector(r.direction());

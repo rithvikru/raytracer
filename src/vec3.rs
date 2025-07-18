@@ -50,6 +50,11 @@ impl Vec3 {
             rng.random_range(min..max),
         )
     }
+
+    pub fn near_zero(&self) -> bool {
+        let s = 1e-8;
+        self.e[0].abs() < s && self.e[1].abs() < s && self.e[2].abs() < s
+    }
 }
 
 impl Add for Vec3 {
@@ -182,6 +187,10 @@ pub fn random_on_hemisphere(normal: &Vec3) -> Vec3 {
         on_unit_sphere = -on_unit_sphere;
     }
     on_unit_sphere
+}
+
+pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
+    v - 2.0 * dot(&v, &n) * n
 }
 
 pub type Point3 = Vec3;

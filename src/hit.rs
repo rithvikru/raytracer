@@ -1,16 +1,17 @@
 use crate::{
     interval::Interval,
+    material::Material,
     ray::Ray,
-    vec3::{Point3, Vec3, dot},
+    vec3::{dot, Point3, Vec3},
 };
 use std::rc::Rc;
 
-#[derive(Debug, Clone, Copy)]
 pub struct HitRecord {
     pub p: Point3,
     pub normal: Vec3,
     pub t: f64,
     pub front_face: bool,
+    pub mat: Rc<dyn Material>,
 }
 
 impl HitRecord {
