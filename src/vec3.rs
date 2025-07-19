@@ -155,11 +155,11 @@ impl Mul<Vec3> for f64 {
     }
 }
 
-pub fn dot(u: &Vec3, v: &Vec3) -> f64 {
+pub fn dot(u: Vec3, v: Vec3) -> f64 {
     u.e[0] * v.e[0] + u.e[1] * v.e[1] + u.e[2] * v.e[2]
 }
 
-pub fn cross(u: &Vec3, v: &Vec3) -> Vec3 {
+pub fn cross(u: Vec3, v: Vec3) -> Vec3 {
     Vec3::new(
         u.e[1] * v.e[2] - u.e[2] * v.e[1],
         u.e[2] * v.e[0] - u.e[0] * v.e[2],
@@ -181,16 +181,23 @@ pub fn random_unit_vector() -> Vec3 {
     }
 }
 
-pub fn random_on_hemisphere(normal: &Vec3) -> Vec3 {
+pub fn random_on_hemisphere(normal: Vec3) -> Vec3 {
     let mut on_unit_sphere = random_unit_vector();
-    if dot(normal, &on_unit_sphere) < 0.0 {
+    if dot(normal, on_unit_sphere) < 0.0 {
         on_unit_sphere = -on_unit_sphere;
     }
     on_unit_sphere
 }
 
 pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
-    v - 2.0 * dot(&v, &n) * n
+    v - 2.0 * dot(v, n) * n
+}
+
+pub fn refract(uv: Vec3, n: Vec3, etai_over_etat: f64) -> Vec3 {
+    let cos_theta = dot(-uv, n).min(1.0);
+    let r_out_perp = etai_over_etat * (uv + cos_theta * n);
+    let r_out_parallel = -((1.0 - r_out_perp.length_squared()).abs().sqrt()) * n;
+    r_out_perp + r_out_parallel
 }
 
 pub type Point3 = Vec3;

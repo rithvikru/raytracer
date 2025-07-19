@@ -29,7 +29,7 @@ impl Hittable for Sphere {
         let oc = self.center - r.origin();
 
         let a = r.direction().length_squared();
-        let h = dot(&r.direction(), &oc);
+        let h = dot(r.direction(), oc);
         let c = oc.length_squared() - self.radius * self.radius;
 
         let discriminant = (h * h) - (a * c);

@@ -23,7 +23,7 @@ pub struct Camera {
 impl Default for Camera {
     fn default() -> Self {
         let aspect_ratio = 16.0 / 9.0;
-        let image_width = 1200;
+        let image_width = 400;
         let samples_per_pixel = 100;
         let max_depth = 50;
         let center = Point3::new(0.0, 0.0, 0.0);
