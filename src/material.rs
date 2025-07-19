@@ -1,4 +1,4 @@
-use crate::vec3::{random_unit_vector, reflect, refract, unit_vector};
+use crate::vec3::{dot, random_unit_vector, reflect, refract, unit_vector};
 use crate::{color::Color, hit::HitRecord, ray::Ray};
 
 pub struct ScatterResult {
@@ -81,9 +81,17 @@ impl Material for Dielectric {
         };
 
         let unit_direction = unit_vector(ray_in.direction());
-        let refracted = refract(unit_direction, hit_record.normal, ri);
+        let cos_theta = dot(-unit_direction, hit_record.normal).min(1.0);
+        let sin_theta = (1.0_f64 - cos_theta * cos_theta).sqrt();
 
-        let scattered = Ray::new(hit_record.p, refracted);
+        let cannot_refract = ri * sin_theta > 1.0;
+        let direction = if cannot_refract {
+            reflect(unit_direction, hit_record.normal)
+        } else {
+            refract(unit_direction, hit_record.normal, ri)
+        };
+
+        let scattered = Ray::new(hit_record.p, direction);
 
         Some(ScatterResult {
             attenuation: attenuation,
