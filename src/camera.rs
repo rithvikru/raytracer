@@ -2,7 +2,7 @@ use crate::color::{write_color, Color};
 use crate::hit::Hittable;
 use crate::interval::Interval;
 use crate::ray::Ray;
-use crate::vec3::{unit_vector, Point3, Vec3};
+use crate::vec3::{cross, unit_vector, Point3, Vec3};
 use indicatif::{ProgressBar, ProgressStyle};
 use rand::Rng;
 
@@ -14,25 +14,40 @@ pub struct Camera {
     pixel00_loc: Point3,
     pixel_delta_u: Vec3,
     pixel_delta_v: Vec3,
+    u: Vec3,
+    v: Vec3,
+    w: Vec3,
     samples_per_pixel: u64,
     pixel_samples_scale: f64,
     max_depth: u64,
+    vfov: f64,
+    lookfrom: Point3,
+    lookat: Point3,
+    vup: Vec3,
     progress: ProgressBar,
 }
 
 impl Default for Camera {
     fn default() -> Self {
         let aspect_ratio = 16.0 / 9.0;
-        let image_width = 400;
+        let image_width = 1200;
         let samples_per_pixel = 100;
-        let max_depth = 50;
-        let center = Point3::new(0.0, 0.0, 0.0);
+        let max_depth = 100;
+        let vfov = 20.0;
+        let lookfrom = Point3::new(-2.0, 2.0, 1.0);
+        let lookat = Point3::new(0.0, 0.0, -1.0);
+        let vup = Vec3::new(0.0, 1.0, 0.0);
+        let center = lookfrom;
         Self::new(
             aspect_ratio,
             image_width,
             center,
             samples_per_pixel,
             max_depth,
+            vfov,
+            lookfrom,
+            lookat,
+            vup,
         )
     }
 }
@@ -44,6 +59,10 @@ impl Camera {
         center: Point3,
         samples_per_pixel: u64,
         max_depth: u64,
+        vfov: f64,
+        lookfrom: Point3,
+        lookat: Point3,
+        vup: Vec3,
     ) -> Self {
         let mut image_height = (image_width as f64 / aspect_ratio) as u64;
         if image_height < 1 {
@@ -52,18 +71,23 @@ impl Camera {
 
         let pixel_samples_scale = 1.0 / (samples_per_pixel as f64);
 
-        let focal_length = 1.0;
-        let viewport_height = 2.0;
+        let focal_length = (lookfrom - lookat).length();
+        let theta = vfov.to_radians();
+        let h = (theta / 2.0).tan();
+        let viewport_height = 2.0 * h * focal_length;
         let viewport_width = viewport_height * (image_width as f64 / image_height as f64);
 
-        let viewport_u = Vec3::new(viewport_width, 0.0, 0.0);
-        let viewport_v = Vec3::new(0.0, -viewport_height, 0.0);
+        let w = unit_vector(lookfrom - lookat);
+        let u = unit_vector(cross(vup, w));
+        let v = cross(w, u);
+
+        let viewport_u = u * viewport_width;
+        let viewport_v = -v * viewport_height;
 
         let pixel_delta_u = viewport_u / (image_width as f64);
         let pixel_delta_v = viewport_v / (image_height as f64);
 
-        let viewport_upper_left =
-            center - Vec3::new(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
+        let viewport_upper_left = center - (w * focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
         let pixel00_loc = viewport_upper_left + (pixel_delta_u + pixel_delta_v) * 0.5;
 
         let progress = ProgressBar::new(image_height);
@@ -83,9 +107,16 @@ impl Camera {
             pixel00_loc,
             pixel_delta_u,
             pixel_delta_v,
+            u,
+            v,
+            w,
             samples_per_pixel,
             pixel_samples_scale,
             max_depth,
+            vfov,
+            lookfrom,
+            lookat,
+            vup,
             progress,
         }
     }
