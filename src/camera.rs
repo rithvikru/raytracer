@@ -35,14 +35,14 @@ impl Default for Camera {
     fn default() -> Self {
         let aspect_ratio = 16.0 / 9.0;
         let image_width = 1200;
-        let samples_per_pixel = 100;
-        let max_depth = 100;
+        let samples_per_pixel = 500;
+        let max_depth = 50;
         let vfov = 20.0;
-        let lookfrom = Point3::new(-2.0, 2.0, 1.0);
-        let lookat = Point3::new(0.0, 0.0, -1.0);
+        let lookfrom = Point3::new(13.0, 2.0, 3.0);
+        let lookat = Point3::new(0.0, 0.0, 0.0);
         let vup = Vec3::new(0.0, 1.0, 0.0);
-        let defocus_angle = 10.0;
-        let focus_dist = 3.4;
+        let defocus_angle = 0.6;
+        let focus_dist = 10.0;
         let center = lookfrom;
         Self::new(
             aspect_ratio,
@@ -100,8 +100,8 @@ impl Camera {
         let pixel00_loc = viewport_upper_left + (pixel_delta_u + pixel_delta_v) * 0.5;
 
         let defocus_radius = focus_dist * (defocus_angle / 2.0).to_radians().tan();
-        let defocus_disk_u = u * random_in_unit_disk();
-        let defocus_disk_v = v * random_in_unit_disk();
+        let defocus_disk_u = u * defocus_radius;
+        let defocus_disk_v = v * defocus_radius;
 
         let progress = ProgressBar::new(image_height);
         progress.set_style(
